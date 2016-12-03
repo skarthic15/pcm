@@ -1,0 +1,16 @@
+---
+
+- name: Copy PCM_Deploy Script on windows 2012
+  win_copy: src="{{ pcm_deploy_script }}" dest={{win_home}}\{{pcm_deploy_script}}
+  when: type == "MT" and ansible_os_name == "Microsoft Windows Server 2012 R2 Standard" and "'v' in sid[0]"
+  register: cp_pcm_script_win
+
+- name: Unzip PCM_Scripts on Windows
+  win_unzip: src="{{ pcm_deploy_script }}" dest=D:\
+  when: type == "MT" and ansible_os_name == "Microsoft Windows Server 2012 R2 Standard" and cp_pcm_script_win|success and "'v' in sid[0]"
+  register: unzip_pcm_script_win
+
+- name: Schedule PCM_Scripts on Windows
+  win_scheduled_task: name="PCM Deploy Script" execute="D:\\PCM_DemoDeploy.bat"  frequency="minute" time="5" enable=yes state=present user="{{ ps_user }}"
+  when: type == "MT" and ansible_os_name == "Microsoft Windows Server 2012 R2 Standard" and unzip_pcm_script_win|success and "'v' in sid[0]"
+  register: sched_pcm_script_win

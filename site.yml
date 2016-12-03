@@ -1,0 +1,5 @@
+---
+- include: demo.yml
+- include: dev.yml
+- include: test.yml
+- include: prod.yml

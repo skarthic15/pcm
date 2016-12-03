@@ -1,0 +1,11 @@
+---
+
+- name: Copy PCM_Deploy Script on windows
+  raw: net use "U:" {{dc_share}} /USER:ad1\{{ad_user}} "{{ ad_pass }}" & xcopy U:\{{pcm_deploy_script}} {{win_home}}\{{pcm_deploy_script}}
+  when: type == "MT" and ansible_os_name == "Microsoft Windows Server 2008 R2 Standard" and "'v' in sid[0]"
+  register: cp_pcm_script_win
+
+- name: Schedule PCM_Scripts on Windows
+  raw: SCHTASKS /Create /SC MINUTE /MO 5 /TN "PCM_Deploy_Script" /TR "{{"  execute="D:\\PCM_DemoDeploy.bat"  frequency="minute" time="5" enable=yes state=present user="{{ ps_user }}"
+  when: type == "MT" and ansible_os_name == "Microsoft Windows Server 2008 R2 Standard" and unzip_pcm_script_win|success and "'v' in sid[0]"
+  register: sched_pcm_script_win

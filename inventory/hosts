@@ -1,0 +1,21 @@
+#[BBAK:children]
+#PBBAMK
+#VBBAMK
+#DBBAMK
+#TBBAMK
+
+[PBBAMK]
+aupodbbam01.oracleoutsourcing.com sid=pbbamk type=DB env=prod os=Linux
+aupodbbam02.oracleoutsourcing.com sid=pbbamk type=MT env=prod os=Linux1
+
+[DBBAMK]
+rmpodbbam01.oracleoutsourcing.com sid=dbbamk type=DB env=dev os=Linux
+rmpodbbam02.oracleoutsourcing.com sid=dbbamk type=MT env=dev os=Linux1
+
+[TBBAMK]
+rmpodbbam01.oracleoutsourcing.com sid=tbbamk type=DB env=test os=Linux
+rmpodbbam02.oracleoutsourcing.com sid=tbbamk type=MT env=test os=Linux1
+
+[VBBAMK]
+rmpodbbam02.oracleoutsourcing.com sid=vbbamk type=MT env=demo os=Linux1
+rmpodbbam01.oracleoutsourcing.com sid=vbbamk type=DB env=demo os=Linux

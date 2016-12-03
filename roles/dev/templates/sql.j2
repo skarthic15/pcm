@@ -1,0 +1,3 @@
+use pcm;
+insert into pcm_linux (pillar, sid, host, os, env, type, exec_sql, exec_sql_stat, date, time) values ('{{sid[1:4]}}{{sid[5:]}}', "{{ sid }}", "{{ inventory_hostname }}", "{{ os }}", "{{ env }}", "{{ type }}", "sql executed", "Success", now(), now());
+exit;

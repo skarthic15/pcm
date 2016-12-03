@@ -1,0 +1,27 @@
+---
+# tasks file for demo
+
+- name: Copy SQL file to DB host
+  copy: src="Config_PCM_Process_Scheduler.sql" dest={{db_home}}/Config_PCM_Process_Scheduler.sql owner="{{ db_user }}" group="{{ db_grp }}"
+  when: type == "DB" and os == "Linux"
+  register: cp_sql
+
+- name: Run SQL file as SYS user
+  shell: su - "{{ db_user }}" -c "sqlplus '/as sysdba' @{{db_home}}/Config_PCM_Process_Scheduler.sql"
+  when: type == "DB" and cp_sql|success and os == "Linux"
+  register: exec_sql
+
+- name: Check PCM directory
+  file: path={{db_home}}/{{pcm_path}}/backups/logs state=directory recurse=yes owner="{{ db_user }}" group="{{ db_grp }}"
+  when: type == "DB" and os == "Linux" and exec_sql|success
+  register: pcm_dir
+
+- name: Copy and Unzip PCM_Scripts
+  unarchive: src="{{ pcm_script }}" dest={{db_home}}/{{pcm_path}} owner="{{ db_user }}" group="{{ db_grp }}"
+  when: type == "DB" and pcm_dir|success and os == "Linux"
+  register: unzip_pcm_script
+
+- name: Schedule PCM client script in Cron
+  cron: name="PCM Client Script" user="{{ db_user }}" minute="*/5" job="sh {{db_home}}/{{pcm_path}}/codes/{{client_script}}_Demo.sh > {{db_home}}/{{pcm_path}}/backups/logs/PCM_FM_DEMO.log"
+  when: type == "DB" and unzip_pcm_script|success and os == "Linux"
+  register: sched_pcm_script

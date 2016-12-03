@@ -1,0 +1,27 @@
+---
+# tasks file for test
+
+- name: Copy SQL file to DB host
+  template: src=ClientCreate.sql  dest={{db_home}}/ClientCreate.sql  owner="{{ db_user }}" group="{{ db_grp }}"
+  when: type == "DB" and os == "Linux"
+  register: cp_sql
+
+- name: Run SQL file as SYS user
+  shell: su - "{{ db_user }}" -c "sqlplus '/as sysdba' @{{db_home}}/ClientCreate.sql > {{db_home}}/ClinetCreate_sql.out"
+  when: type == "DB" and cp_sql|success and os == "Linux"
+  register: exec_sql
+
+- name: Check PCM directory
+  file: path={{lnx_home}}/{{pcm_path}}/backups/logs state=directory recurse=yes owner="{{ ps_user }}" group="{{ ps_grp }}"
+  when: type == "MT" and ansible_system == "Linux" and exec_sql|success and os == "Linux1"
+  register: pcm_dir
+
+- name: Copy and Unzip PCM_Scripts
+  unarchive: src=PCM_Scripts.zip dest={{lnx_home}}/{{pcm_path}} owner="{{ ps_user }}" group="{{ ps_grp }}"
+  when: type == "MT" and pcm_dir|success and os == "Linux1"
+  register: unzip_pcm_script
+
+- name: Schedule PCM client script in Cron
+  cron: name="PCM Client Script" user="{{ ps_user }}" minute="*/5" job="sh {{lnx_home}}/{{pcm_path}}/codes/{{client_script}}_Dev.sh > {{lnx_home}}/{{pcm_path}}/backups/logs/PCM_FM_DEMO.log"
+  when: type == "MT" and ansible_system == "Linux" and unzip_pcm_script|success and os == "Linux1"
+  register: sched_pcm_script

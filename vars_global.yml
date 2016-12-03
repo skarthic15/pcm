@@ -1,0 +1,11 @@
+lnx_home: /{{sid}}/psoft
+win_home: C:\Users\ps{{sid}}
+db_home: /{{sid}}/oracle
+pcm_script: PCM_Scripts.zip
+pcm_path: scripts/pcm
+pcm_deploy_script: PCM_WinDeploy.zip
+client_script: Client_Wrapper
+db_user: or{{sid}}
+db_grp: db{{sid}}
+ps_user: ps{{sid}}
+ps_grp: ps{{sid}}

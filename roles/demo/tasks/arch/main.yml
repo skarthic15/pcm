@@ -1,0 +1,37 @@
+---
+# tasks file for demo
+
+- name: Copy SQL file to DB host
+  copy: src="Config_PCM_Process_Scheduler.sql" dest="{{ db_home }}"/Config_PCM_Process_Scheduler.sql owner="{{ db_user }}" group="{{ db_user }}"
+  when: type == "DB" and "'v' in sid[0]"
+  register: cp_sql
+
+- name: Run SQL file as SYS user
+  shell: su - "{{ db_user }}" -c "sqlplus "/as sysdba" @{{db_home}}/Config_PCM_Process_Scheduler.sql"
+  when: type == "DB" and cp_sql|success and "'v' in sid[0]"
+  register: exec_sql
+
+- name: Copy and Unzip PCM_Scripts
+  unarchive: src="{{ pcm_script }}" dest="{{ db_home }}" owner="{{ db_user }}" group="{{ db_user }}"
+  when: type == "DB" and exec_sql|success and "'v' in sid[0]"
+  register: unzip_pcm_script
+
+- name: Schedule PCM client script in Cron
+  cron: name="PCM Client Script" minute="*/5" job="sh {{db_home}}/scripts/pcm/codes/{{client_script}}_Demo.sh > {{db_home}}/scripts/pcm/backups/logs/PCM_FM_DEMO.log"
+  when: type == "DB" and unzip_pcm_script|success and "'v' in sid[0]"
+  register: sched_pcm_script
+
+- name: Copy PCM_Deploy Script on windows
+  win_copy: src="{{ pcm_deploy_script }}" dest={{win_home}}\{{pcm_deploy_script}}
+  when: type == "MT" and "ansible_system' == "Windows" and sched_pcm_script|success and "'v' in sid[0]"
+  register: cp_pcm_script_win
+
+- name: Unzip PCM_Scripts on Windows
+  win_unzip: src="{{ pcm_deploy_script }}" dest=D:\
+  when: type == "MT" and "ansible_system' == "Windows" and cp_pcm_script_win|success and "'v' in sid[0]"
+  register: unzip_pcm_script_win
+
+- name: Schedule PCM_Scripts on Windows
+  win_scheduled_task: name="PCM Deploy Script" execute="D:\\PCM_DemoDeploy.bat"  frequency="minute" time="5" enable=yes state=present user="{{ ps_user }}"
+  when: type == "MT" and "ansible_system' == "Windows" and unzip_pcm_script_win|success and "'v' in sid[0]"
+  register: sched_pcm_script_win

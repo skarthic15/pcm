@@ -1,0 +1,10 @@
+---
+- hosts: all
+  become: yes
+  become_method: pbrun
+  gather_facts: no
+  vars_files:
+    - vars_global.yml
+
+  roles:
+   - { role: test, when: env == "test" }
